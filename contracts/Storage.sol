@@ -10,6 +10,10 @@ import "@bnb-chain/greenfield-contracts-sdk/interface/IERC721NonTransferable.sol
 
 contract CopyrightShop is BucketApp, ObjectApp, GroupApp {
 
+    // event
+    event NewContract(address indexed _contractAddress, string _url, bytes32 _value);
+    event AcceptContract(address indexed _contractAddress, string _url, bytes32 _value);
+
     // error code
     string constant ERROR_INVALID_CALLER = "invalid caller";
     string constant ERROR_INVALID_RESOURCE = "invalid resource";
@@ -25,9 +29,25 @@ contract CopyrightShop is BucketApp, ObjectApp, GroupApp {
     address public groupToken;
     address public memberToken;
 
+    // struct
+    struct Contract {
+        string url;
+        bytes32 value;
+    }
 
+    Contract private contractInfo;
+
+    // mapping
+    mapping(Contract => mapping(address => bool)) private contractMap;
+
+    // modifier
     modifier onlyOwner() {
         require(msg.sender == owner, string.concat("Copyright: ", ERROR_INVALID_CALLER));
+        _;
+    }
+
+    modifier onlyContract() {
+        require(contractMap[contractInfo][msg.sender], string.concat("Contract: ", ERROR_INVALID_CALLER));
         _;
     }
 
@@ -78,5 +98,24 @@ contract CopyrightShop is BucketApp, ObjectApp, GroupApp {
         }
     }
 
+    function initNewContract(address _contractAddress, string calldata _url, string calldata value) external onlyOwner {
+        contractInfo = Contract(_url, keccak256(abi.encodePacked(_value)));
+        contractMap[contractInfo][_contractAddress] = true;
+        emit NewContract(_contractAddress, _url, _value);
+    }
 
+    function acceptContract(string calldata value) external onlyOwner {
+        require(contractInfo.value == keccak256(abi.encodePacked(_value)), string.concat("Contract: ", ERROR_INVALID_VALUE));
+        contractMap[contractInfo][_contractAddress] = true;
+        emit AcceptContract(_contractAddress, _url, _value);
+    }
+
+    function getContract(address _contractAddress) external view returns (string memory, bytes32) {
+        require(contractMap[contractInfo][_contractAddress], string.concat("Contract: ", ERROR_INVALID_CALLER));
+        return (contractInfo.url, contractInfo.value);
+    }
+
+    function acceptedContract(address _contractAddress) external view returns (bool) {
+        return contractMap[contractInfo][_contractAddress];
+    }
 }
