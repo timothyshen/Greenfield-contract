@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract CopyrightNFT is ERC721, Ownable, ERC721Enumerable, ERC721URIStorage{
 
     constructor () ERC721("CopyrightNFT", "CNFT") {
+        
     }
 
     function mint(address to, uint256 tokenId) public onlyOwner {
